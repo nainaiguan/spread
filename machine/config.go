@@ -1,7 +1,6 @@
 package machine
 
 import (
-	"log"
 	"time"
 )
 
@@ -11,8 +10,6 @@ type Config struct {
 	MaxMiddlewarePushConcurrency int
 	EntryCapacity                int
 	MiddleCapacity               int
-	OutputBufferCapacity         int
-	Logger                       log.Logger
 }
 
 func verifyConfig(cfg *Config) *Config {
@@ -30,9 +27,6 @@ func verifyConfig(cfg *Config) *Config {
 	}
 	if cfg.MiddleCapacity <= 0 {
 		cfg.MiddleCapacity = 1024
-	}
-	if cfg.OutputBufferCapacity <= 0 {
-		cfg.OutputBufferCapacity = 1024
 	}
 
 	return cfg
