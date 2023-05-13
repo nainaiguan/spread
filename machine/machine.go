@@ -31,8 +31,9 @@ func DefaultMachine() *Machine {
 	m := &Machine{
 		ctx:       context.Background(),
 		cancelMap: make(map[string]context.CancelFunc),
-		logger:    DefaultLogger(),
 	}
+
+	m.WithLogger(DefaultLogger())
 
 	sc, cancel := slowchan.Default()
 	m.Entry = sc
@@ -43,6 +44,39 @@ func DefaultMachine() *Machine {
 	m.cancelMap[subTag] = cancel
 
 	dftc, cancel := dftchan.Default()
+	m.Output = dftc
+	m.cancelMap[DftTag] = cancel
+
+	return m
+}
+
+func NewMachine(cfg *Config) *Machine {
+	realCfg := verifyConfig(cfg)
+	m := &Machine{
+		ctx:       context.Background(),
+		cancelMap: make(map[string]context.CancelFunc),
+	}
+	m.WithLogger(DefaultLogger())
+
+	sc, cancel := slowchan.New(slow.NewSlowArgs{
+		Size:           realCfg.EntryCapacity,
+		Step:           realCfg.MiddlewareAcceptStep,
+		MaxSendProcess: realCfg.MaxEntryPushConcurrency,
+	})
+	m.Entry = sc
+	m.cancelMap[slowTag] = cancel
+
+	subc, cancel := subchan.New(sub.NewSubArgs{
+		Size:           realCfg.MiddleCapacity,
+		MaxSendProcess: realCfg.MaxMiddlewarePushConcurrency,
+	})
+	m.Middleware = subc
+	m.cancelMap[subTag] = cancel
+
+	dftc, cancel := dftchan.New(dft.NewDftArgs{
+		Size:           realCfg.OutputBufferCapacity,
+		MaxSendProcess: 1024,
+	})
 	m.Output = dftc
 	m.cancelMap[DftTag] = cancel
 

@@ -31,3 +31,7 @@ func (dl *defaultLogger) Fatalf(template string, args ...interface{}) {
 	f := fmt.Sprintf("[ Fatal! ]     "+template, args)
 	panic(f)
 }
+
+func (m *Machine) WithLogger(logger Logger) {
+	m.logger = logger
+}
